@@ -2,17 +2,6 @@ import express from "express";
 import bodyParser from "body-parser";
 import axios from "axios";
 import dotenv from "dotenv";
-dotenv.config();
-
-const app = express();
-const PORT = 5000;
-
-app.use(bodyParser.json());
-
-const TOKEN = process.env.BOT_TOKEN;
-const TELEG_API = `https://api.telegram.org/bot${TOKEN}`;
-const { SERVER_URL } = process.env;
-
 import start from "./controllers/start";
 import help from "./controllers/help";
 import recent from "./controllers/recent";
@@ -21,6 +10,19 @@ import favourite from "./controllers/favourite";
 import getCoins from "./controllers/getCoins";
 import addFavourite from "./controllers/addFavourite";
 import deleteFavourite from "./controllers/deleteFavourite";
+dotenv.config();
+
+const app = express();
+const PORT = 5000;
+const TOKEN = process.env.BOT_TOKEN;
+const TELEG_API = `https://api.telegram.org/bot${TOKEN}`;
+const { SERVER_URL } = process.env;
+const init = async () => {
+  const res = await axios.post(`${TELEG_API}/setwebhook?url=${SERVER_URL}`);
+  console.log(res.data);
+};
+
+app.use(bodyParser.json());
 
 app.get("/", (req, res) => {
   res.send("Welcome to Cryptocurrency commutator!");
@@ -66,11 +68,6 @@ app.post("/", async (req, res) => {
     }
   }
 });
-
-const init = async () => {
-  const res = await axios.post(`${TELEG_API}/setwebhook?url=${SERVER_URL}`);
-  console.log(res.data);
-};
 
 app.listen(PORT, async () => {
   await init();
