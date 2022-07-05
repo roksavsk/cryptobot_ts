@@ -10,15 +10,19 @@ interface coinData {
 }
 
 async function coininfo(chatId: number, username: string, sentMessage: string, res: Response) {
-    await axios.get(`http://localhost:3000/api/currencies${sentMessage}`).then((response) => {
-        price = response.data;
-        price.reverse();
-    }).catch((error) => {
-        console.log(error);
-    });
+    const getPrice = async () => {
+        try{
+            const resp = await axios.get(`http://localhost:3000/api/currencies${sentMessage}`);
+            price = await resp.data;
+            price.reverse();
+        } catch(err) {
+            console.log(err);
+        }
+    }
+    await getPrice();
     const check: string[] = await findUser(username);
     console.log(check);
-    let msg;
+    let msg: string;
     if (price.length >= 288) { 
         msg =`History of the average price of currency ${sentMessage}:
 30 min - $${price[5].averagePrice}
@@ -34,18 +38,28 @@ async function coininfo(chatId: number, username: string, sentMessage: string, r
 6 hours - $${price[71].averagePrice}`;
     } else { msg = `History of the average price of currency ${sentMessage}:
 5 min - $${price[0].averagePrice}`;}
-    axios.post(`${TELEG_API}/sendMessage`,
-    {
-        chat_id: chatId,
-        text: msg,
-        reply_markup: {
-            inline_keyboard: [[{
-                text: check.includes(sentMessage.slice(1)) ? "Remove from favourite" : "Add to favourite",
-                callback_data: `${sentMessage.slice(1)}`,
-            }]]
+
+    const postData = async () => {
+        try{
+            const url = `${TELEG_API}/sendMessage`;
+            const resp = await axios.post(url, {
+                chat_id: chatId,
+                text: msg,
+                reply_markup: {
+                    inline_keyboard: [[{
+                        text: check.includes(sentMessage.slice(1)) ? "Remove from favourite" : "Add to favourite",
+                        callback_data: `${sentMessage.slice(1)}`,
+                    }]]
+                }
+            });
+            const data = await resp.data;
+            res.status(200).send(data);
+        } catch(err) {
+            console.log(err);
+            res.send(err);
         }
-    })
-    .then((response) => res.status(200).send(response)).catch((error) => res.send(error));
+    }
+    postData();
 }
 
 export default coininfo;

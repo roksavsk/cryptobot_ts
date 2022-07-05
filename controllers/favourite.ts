@@ -12,23 +12,33 @@ interface coinData {
 
 async function favourite(chatId: number, username: string, res: Response) {
     const data: string[] = await findUser(username);
-    await axios.get("http://localhost:3000/api/currencies/recent").then((response) => {
-        recent = response.data.reverse(); 
-    }).catch((error) => {
-        console.log(error);
-    });
+    const getRecent = async () => {
+        try{
+            const resp = await axios.get("http://localhost:3000/api/currencies/recent");
+            recent = resp.data.reverse();
+        } catch(err) {
+            console.log(err);
+        }
+    }
+    await getRecent();
     let favouriteList = "";
     recent.forEach( (elem: coinData) => {
         if (data.includes(elem.cryptoName)){
             favouriteList += `\n/${elem.cryptoName} $${elem.averagePrice}`;
     }
     });
-    axios.post(`${TELEG_API}/sendMessage`,
-    {
-        chat_id: chatId,
-        text: favouriteList.length ? `Here is the list of your favourite currency: ${favouriteList}` : "You have no favourite currency yet add some from the recent list"
-    })
-    .then((response) => res.status(200).send(response.data)).catch((error) => res.send(error));
+    const postData = async () => {
+        try{
+            const resp = await axios.post(`${TELEG_API}/sendMessage`, {
+                chat_id: chatId,
+                text: favouriteList.length ? `Here is the list of your favourite currency: ${favouriteList}` : "You have no favourite currency yet add some from the recent list"
+            });
+            res.status(200).send(resp.data);
+        } catch(err) {
+            res.send(err);
+        }
+    }
+    postData();
 }
 
 export default favourite;

@@ -9,15 +9,19 @@ async function deleteFavourite(chatId: number, username: string, currency: strin
     const data: string[] = await findUser(username);
     const check = data.includes(currency);
     if (check) { User.remove(username, currency); };
-    axios.post(`${TELEG_API}/sendMessage`,
-    {
-        chat_id: chatId,
-        text: check ? `Currency was removed from favourite: ${currency}` : "Currency is not in the list" 
-    })
-    .then((response) => res.status(200).send(response.data)).catch((error) => {
-        console.log(error);
-        return res.status(500);
-    });
+    const postData = async () => {
+        try{
+            const resp = await axios.post(`${TELEG_API}/sendMessage`, {
+                chat_id: chatId,
+                text: check ? `Currency was removed from favourite: ${currency}` : "Currency is not in the list" 
+            });
+            res.status(200).send(resp.data);
+        } catch(err) {
+            console.log(err);
+            return res.status(500);
+        }
+    }
+    postData();
 }
 
 export default deleteFavourite;

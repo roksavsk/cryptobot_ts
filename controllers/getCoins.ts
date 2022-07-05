@@ -7,17 +7,18 @@ interface coinData {
 
 async function getCoins(text: string) {
     const currencies: string[] = [];
-    await axios
-    .get("http://localhost:3000/api/currencies/recent")
-    .then(response => {
-        response.data.forEach((item: coinData) => {
-            currencies.push(item.cryptoName);
-        });
-        console.log("Data is saved");
-    })
-    .catch(error => {
-        console.log("error", error);
-    });
+    const getRecent = async () => {
+        try{
+            const response = await axios.get("http://localhost:3000/api/currencies/recent");
+            response.data.forEach((item: coinData) => {
+                currencies.push(item.cryptoName);
+            });
+            console.log("Data is saved");
+        } catch(err) {
+            console.log(err);
+        }
+    }
+    await getRecent();
     const findCoin = currencies.filter(el => `/${el}` === text);
     return findCoin[0];
 }

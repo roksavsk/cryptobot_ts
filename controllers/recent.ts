@@ -9,22 +9,27 @@ interface coinData {
     averagePrice: number,
 }
 
-async function recent(chatId: number, res: Response) {    
-    await axios.get("http://localhost:3000/api/currencies/recent").then((response) => {
-        recentData = response.data.reverse(); 
-    }).catch((error) => {
-        console.log(error);
-    });
+async function recent(chatId: number, res: Response) {
+    try{
+        const response = await axios.get("http://localhost:3000/api/currencies/recent");
+        recentData = response.data.reverse();
+        console.log("Data is saved");
+    } catch(err) {
+        console.log(err);
+    }    
     let recentList = "";
     recentData.forEach((elem: coinData) => {
         recentList += `\n/${elem.cryptoName} $${elem.averagePrice}`;
     });
-    axios.post(`${TELEG_API}/sendMessage`,
-        {
+    try{
+        const resp = await axios.post(`${TELEG_API}/sendMessage`, {
             chat_id: chatId,
             text: `Here is the list of the most popular currency: ${recentList}`
-        })
-        .then((response) => res.status(200).send(response)).catch((error) => res.send(error));
+        });
+        res.status(200).send(resp.data);
+    } catch(err) {
+        res.send(err);
+    }
 }
 
 export default recent;
